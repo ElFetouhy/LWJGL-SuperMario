@@ -1,20 +1,16 @@
 package Motor;
 
-import imgui.ImFontAtlas;
-import imgui.ImFontConfig;
-import imgui.ImGui;
-import imgui.ImGuiIO;
+import imgui.*;
 import imgui.callback.ImStrConsumer;
 import imgui.callback.ImStrSupplier;
 import imgui.flag.*;
 import imgui.gl3.ImGuiImplGl3;
 import imgui.glfw.ImGuiImplGlfw;
-import org.lwjgl.glfw.GLFW;
 
 import static org.lwjgl.glfw.GLFW.*;
 
 public class ImGuiLayer {
-    private long glfwWindow;
+    private final long glfwWindow;
 
     private boolean showText = false;
 
@@ -44,7 +40,7 @@ public class ImGuiLayer {
         io.setConfigFlags(ImGuiConfigFlags.NavEnableKeyboard); // Navigation with keyboard
         io.setBackendFlags(ImGuiBackendFlags.HasMouseCursors); // Mouse cursors to display while resizing windows etc.
         io.setBackendPlatformName("imgui_java_impl_glfw");
-
+        ImGuiKeyData imGuiKeyData = new ImGuiKeyData();
         // ------------------------------------------------------------
         // Keyboard mapping. ImGui will use those indices to peek into the io.KeysDown[] array.
         final int[] keyMap = new int[ImGuiKey.COUNT];
@@ -71,7 +67,6 @@ public class ImGuiLayer {
         keyMap[ImGuiKey.Y] = GLFW_KEY_Y;
         keyMap[ImGuiKey.Z] = GLFW_KEY_Z;
         io.setKeyMap(keyMap);
-
         // ------------------------------------------------------------
         // Mouse cursors mapping
         mouseCursors[ImGuiMouseCursor.Arrow] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
@@ -89,15 +84,15 @@ public class ImGuiLayer {
 
         glfwSetKeyCallback(glfwWindow, (w, key, scancode, action, mods) -> {
             if (action == GLFW_PRESS) {
-                io.setKeysDown(key, true);
+                ImGui.isKeyPressed(key, true);
             } else if (action == GLFW_RELEASE) {
-                io.setKeysDown(key, false);
+                ImGui.isKeyPressed(key, false);
             }
 
-            io.setKeyCtrl(io.getKeysDown(GLFW_KEY_LEFT_CONTROL) || io.getKeysDown(GLFW_KEY_RIGHT_CONTROL));
-            io.setKeyShift(io.getKeysDown(GLFW_KEY_LEFT_SHIFT) || io.getKeysDown(GLFW_KEY_RIGHT_SHIFT));
-            io.setKeyAlt(io.getKeysDown(GLFW_KEY_LEFT_ALT) || io.getKeysDown(GLFW_KEY_RIGHT_ALT));
-            io.setKeySuper(io.getKeysDown(GLFW_KEY_LEFT_SUPER) || io.getKeysDown(GLFW_KEY_RIGHT_SUPER));
+            io.setKeyCtrl(ImGui.isKeyPressed(GLFW_KEY_LEFT_CONTROL) || ImGui.isKeyPressed(GLFW_KEY_RIGHT_CONTROL));
+            io.setKeyShift(ImGui.isKeyPressed(GLFW_KEY_LEFT_SHIFT) || ImGui.isKeyPressed(GLFW_KEY_RIGHT_SHIFT));
+            io.setKeyAlt(ImGui.isKeyPressed(GLFW_KEY_LEFT_ALT) || ImGui.isKeyPressed(GLFW_KEY_RIGHT_ALT));
+            io.setKeySuper(ImGui.isKeyPressed(GLFW_KEY_LEFT_SUPER) || ImGui.isKeyPressed(GLFW_KEY_RIGHT_SUPER));
         });
 
         glfwSetCharCallback(glfwWindow, (w, c) -> {
@@ -208,6 +203,7 @@ public class ImGuiLayer {
         final int imguiCursor = ImGui.getMouseCursor();
         glfwSetCursor(glfwWindow, mouseCursors[imguiCursor]);
         glfwSetInputMode(glfwWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+
     }
 
     private void endFrame() {

@@ -1,7 +1,15 @@
 package Motor;
+import Components.ComponentDeserializer;
 import Renderer.Renderer;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import imgui.ImGui;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,6 +19,8 @@ public abstract class Scene {
     private boolean isRunning = false;
     protected List<GameObject> gameObjects= new ArrayList<>();
     protected GameObject activeGameObject = null;
+    protected boolean loadedLevel = false;
+
     public Scene(){}
     public void init(){
 
@@ -46,5 +56,43 @@ public abstract class Scene {
     }
     public void imgui(){
 
+    }
+    public void saveExit(){
+        Gson gson = new GsonBuilder()
+                .setPrettyPrinting()
+                .registerTypeAdapter(Component.class, new ComponentDeserializer())
+                .registerTypeAdapter(GameObject.class, new GameObjectDeserializer())
+                .create();
+
+        try{
+            FileWriter writer = new FileWriter("level.txt");
+            writer.write(gson.toJson(this.gameObjects));
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+    public void load(){
+        Gson gson = new GsonBuilder()
+                .setPrettyPrinting()
+                .registerTypeAdapter(Component.class, new ComponentDeserializer())
+                .registerTypeAdapter(GameObject.class, new GameObjectDeserializer())
+                .create();
+
+        String inFile = "";
+        try{
+            inFile = new String(Files.readAllBytes(Paths.get("level.txt")));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        if(!inFile.isEmpty()){
+            GameObject[] objects = gson.fromJson(inFile, GameObject[].class);
+            for (GameObject object : objects) {
+                addGameObjectToScene(object);
+            }
+            this.loadedLevel = true;
+        }
     }
 }
