@@ -33,7 +33,6 @@ public class  LevelEditorScene extends Scene {
 
         if(loadedLevel){
             this.activeGameObject = gameObjects.getFirst();
-            this.activeGameObject.addComponent(new Rigidbody());
             return;
         }
 
@@ -83,6 +82,19 @@ public class  LevelEditorScene extends Scene {
         t += 0.05f;
         DebugDraw.addLine2D(new Vector2f(600,400),new Vector2f(x,y),new Vector3f(1,0,0),10);
 
+        //System.out.println( "@FPS " + (1.0f / dt) +".");
+//        spriteFlipTimeLeft -=dt;
+//        if(spriteFlipTimeLeft <= 0){
+//            spriteFlipTimeLeft = spriteFlipTime;
+//            spriteIndex++;
+//            if(spriteIndex > 4){
+//                spriteIndex =0;
+//            }
+//            obj1.getComponent(SpriteRenderer.class).setSprite(spritesheet.getSprite(spriteIndex));
+//        }
+//
+//        obj1.transform.position.x += 10 * dt;
+//        System.out.println(MouseListener.getOrthoX());;
         for (GameObject go : gameObjects){
             go.update(dt);
         }
