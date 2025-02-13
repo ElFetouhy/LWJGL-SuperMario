@@ -102,7 +102,7 @@ public class  LevelEditorScene extends Scene {
 //        }
 //
 //        obj1.transform.position.x += 10 * dt;
-        System.out.println(MouseListener.getOrthoX());;
+//        System.out.println(MouseListener.getOrthoX());;
         for (GameObject go : gameObjects){
             go.update(dt);
         }
