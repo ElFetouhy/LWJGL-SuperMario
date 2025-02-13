@@ -1,5 +1,7 @@
 package Motor;
 
+import Renderer.DebugDraw;
+import Renderer.Line2D;
 import Scenes.LevelEditorScene;
 import Scenes.LevelScene;
 import Scenes.Scene;
@@ -145,10 +147,13 @@ public class Window {
             //Poll events
             glfwPollEvents();
 
+            DebugDraw.beginFrame();
+
             glClearColor(r, g, b, a);
             glClear(GL_COLOR_BUFFER_BIT);
 
             if(dt >= 0) {
+                DebugDraw.draw();
                 currentScene.update(dt);
             }
 

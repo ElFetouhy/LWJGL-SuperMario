@@ -5,11 +5,13 @@ import Motor.Camera;
 import Motor.GameObject;
 import Motor.Prefabs;
 import Motor.Transform;
+import Renderer.DebugDraw;
 import Util.AssetPool;
 import com.google.gson.Gson;
 import imgui.ImGui;
 import imgui.ImVec2;
 import org.joml.Vector2f;
+import org.joml.Vector3f;
 import org.joml.Vector4f;
 
 public class  LevelEditorScene extends Scene {
@@ -57,23 +59,29 @@ public class  LevelEditorScene extends Scene {
 
         obj2.addComponent(obj2SpriteRender);
         this.addGameObjectToScene(obj2);
+
+
     }
 
     private void loadResources() {
         AssetPool.getShader("assets/shaders/default.glsl");
+
         AssetPool.addSpritesheet("assets/images/spritesheets/decorationsAndBlocks.png",
                 new Spritesheet(AssetPool.getTexture("assets/images/spritesheets/decorationsAndBlocks.png"),
                         16,16,81,0));
         AssetPool.getTexture("assets/images/blendImage1.png");
     }
-    private int spriteIndex = 0;
-    private float spriteFlipTime = 0.2f;
-    private float spriteFlipTimeLeft = 0.0f;
+
+    float t = 0.0f;
 
     @Override
     public void update(float dt) {
-
         mouseControls.update(dt);
+
+        float x = ((float) Math.sin(t) * 200.0f) + 600;
+        float y = ((float) Math.cos(t) * 200.0f) + 400;
+        t += 0.05f;
+        DebugDraw.addLine2D(new Vector2f(600,400),new Vector2f(x,y),new Vector3f(1,0,0),10);
 
         for (GameObject go : gameObjects){
             go.update(dt);
