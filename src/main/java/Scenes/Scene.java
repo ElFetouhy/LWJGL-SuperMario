@@ -1,11 +1,14 @@
-package Motor;
+package Scenes;
+import Components.Component;
 import Components.ComponentDeserializer;
+import Motor.Camera;
+import Motor.GameObject;
+import Motor.GameObjectDeserializer;
 import Renderer.Renderer;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import imgui.ImGui;
 
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -88,10 +91,28 @@ public abstract class Scene {
         }
 
         if(!inFile.isEmpty()){
+            int maxGoId = -1;
+            int maxCompId = -1;
             GameObject[] objects = gson.fromJson(inFile, GameObject[].class);
-            for (GameObject object : objects) {
-                addGameObjectToScene(object);
+            for (int i = 0; i < objects.length; i++) {
+
+                addGameObjectToScene(objects[i]);
+                for (Component c : objects[i].getAllComponents()){
+                    if(c.getUid() > maxCompId){
+                        maxCompId = c.getUid();
+                    }
+                }
+                if(objects[i].getUid() > maxGoId){
+                    maxGoId = objects[i].getUid();
+                }
             }
+            maxGoId++;
+            maxCompId++;
+            System.out.println(maxGoId);
+            System.out.println(maxCompId);
+            GameObject.init(maxGoId);
+            Component.init(maxCompId);
+
             this.loadedLevel = true;
         }
     }

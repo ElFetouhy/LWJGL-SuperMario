@@ -1,6 +1,5 @@
 package Components;
 
-import Motor.Component;
 import Motor.Transform;
 import Renderer.Texture;
 import imgui.ImGui;

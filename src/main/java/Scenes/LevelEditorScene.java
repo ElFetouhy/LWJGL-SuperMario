@@ -1,9 +1,10 @@
-package Motor;
+package Scenes;
 
-import Components.Rigidbody;
-import Components.Sprite;
-import Components.SpriteRenderer;
-import Components.Spritesheet;
+import Components.*;
+import Motor.Camera;
+import Motor.GameObject;
+import Motor.Prefabs;
+import Motor.Transform;
 import Util.AssetPool;
 import com.google.gson.Gson;
 import imgui.ImGui;
@@ -15,6 +16,7 @@ public class  LevelEditorScene extends Scene {
     private GameObject obj1;
     private Spritesheet spritesheet;
     private SpriteRenderer obj1SpriteRenderer;
+    MouseControls mouseControls = new MouseControls();
     Gson gson;
 
     public LevelEditorScene(){
@@ -29,6 +31,7 @@ public class  LevelEditorScene extends Scene {
 
         if(loadedLevel){
             this.activeGameObject = gameObjects.getFirst();
+            this.activeGameObject.addComponent(new Rigidbody());
             return;
         }
 
@@ -54,27 +57,6 @@ public class  LevelEditorScene extends Scene {
 
         obj2.addComponent(obj2SpriteRender);
         this.addGameObjectToScene(obj2);
-
-//        int xOffset = 10;
-//        int yOffset = 10;
-
-//        float totalWidth = (float) (600- xOffset * 2);
-//        float totalHeight = (float) (300 - yOffset * 2);
-//        float sizeX = totalWidth / 100.0f;
-//        float sizeY = totalHeight / 100.0f;
-//        GameObject gameObject= null;
-//        for (int x = 0; x < 100; x++) {
-//            for (int y = 0; y < 100; y++) {
-//                float xPos = xOffset + (x * sizeX);
-//                float yPos = yOffset + (y * sizeY);
-//
-//                gameObject = new GameObject("Obj" + x +""+ y, new Transform(new Vector2f(xPos,yPos),new Vector2f(sizeX,sizeY)),0);
-//                gameObject.addComponent(new SpriteRenderer(new Vector4f(xPos / totalWidth, yPos/ totalHeight,1,1)));
-//                this.addGameObjectToScene(gameObject);
-//                this.activeGameObject = gameObject;
-//            }
-//        }
-
     }
 
     private void loadResources() {
@@ -90,19 +72,9 @@ public class  LevelEditorScene extends Scene {
 
     @Override
     public void update(float dt) {
-        //System.out.println( "@FPS " + (1.0f / dt) +".");
-//        spriteFlipTimeLeft -=dt;
-//        if(spriteFlipTimeLeft <= 0){
-//            spriteFlipTimeLeft = spriteFlipTime;
-//            spriteIndex++;
-//            if(spriteIndex > 4){
-//                spriteIndex =0;
-//            }
-//            obj1.getComponent(SpriteRenderer.class).setSprite(spritesheet.getSprite(spriteIndex));
-//        }
-//
-//        obj1.transform.position.x += 10 * dt;
-        System.out.println(MouseListener.getOrthoX());;
+
+        mouseControls.update(dt);
+
         for (GameObject go : gameObjects){
             go.update(dt);
         }
@@ -128,7 +100,10 @@ public class  LevelEditorScene extends Scene {
 
             ImGui.pushID(i);
             if(ImGui.imageButton(id, spriteWidth, spriteHeight, texCoords[0].x,texCoords[0].y,texCoords[2].x,texCoords[2].y)){
-                System.out.println("button " + (i+1) + " clicked");
+                GameObject object = Prefabs.generateSpriteObject(sprite,spriteWidth,spriteHeight);
+                //Attach object to mouse cursor
+                mouseControls.pickupObject(object);
+                //System.out.println("button " + (i+1) + " clicked");
             }
             ImGui.popID();
             ImVec2 lastButtonPos = new ImVec2();

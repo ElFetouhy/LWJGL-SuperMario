@@ -1,6 +1,7 @@
-package Motor;
+package Components;
 
 
+import Motor.GameObject;
 import imgui.ImGui;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
@@ -9,6 +10,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
 public abstract class Component {
+    private static int ID_COUNTER = 0;
+    private int uid = -1;
     public transient GameObject gameObject = null;
 
     public void update(float dt){
@@ -72,4 +75,19 @@ public abstract class Component {
             throw new RuntimeException(e);
         }
     }
+
+    public void generateId(){
+        if(this.uid == -1){
+            this.uid = ID_COUNTER++;
+        }
+    }
+
+    public int getUid() {
+        return this.uid;
+    }
+    public static void init(int maxId){
+        ID_COUNTER = maxId;
+    }
+
+
 }

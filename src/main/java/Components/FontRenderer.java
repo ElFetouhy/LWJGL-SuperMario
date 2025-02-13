@@ -1,7 +1,5 @@
 package Components;
 
-import Motor.Component;
-
 public class FontRenderer extends Component {
 
     public FontRenderer(){

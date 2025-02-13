@@ -1,5 +1,6 @@
 package Motor;
 
+import Scenes.Scene;
 import imgui.*;
 import imgui.callback.ImStrConsumer;
 import imgui.callback.ImStrSupplier;
@@ -93,6 +94,10 @@ public class ImGuiLayer {
             io.setKeyShift(ImGui.isKeyPressed(GLFW_KEY_LEFT_SHIFT) || ImGui.isKeyPressed(GLFW_KEY_RIGHT_SHIFT));
             io.setKeyAlt(ImGui.isKeyPressed(GLFW_KEY_LEFT_ALT) || ImGui.isKeyPressed(GLFW_KEY_RIGHT_ALT));
             io.setKeySuper(ImGui.isKeyPressed(GLFW_KEY_LEFT_SUPER) || ImGui.isKeyPressed(GLFW_KEY_RIGHT_SUPER));
+
+            if(!io.getWantCaptureKeyboard()){
+                KeyListener.keyCallback(w,key,scancode,action,mods);
+            }
         });
 
         glfwSetCharCallback(glfwWindow, (w, c) -> {
@@ -114,6 +119,10 @@ public class ImGuiLayer {
 
             if (!io.getWantCaptureMouse() && mouseDown[1]) {
                 ImGui.setWindowFocus(null);
+            }
+
+            if(!io.getWantCaptureMouse()){
+                MouseListener.mouseButtonCallback(w,button,action,mods);
             }
         });
 
@@ -169,7 +178,7 @@ public class ImGuiLayer {
         imGuiImplGl3.init(glslVersion);
     }
 
-    public void update(float dt,Scene currentScene){
+    public void update(float dt, Scene currentScene){
         startFrame(dt);
         imGuiImplGl3.newFrame();
         imGuiImplGlfw.newFrame();

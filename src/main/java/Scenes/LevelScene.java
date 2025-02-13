@@ -1,6 +1,8 @@
-package Motor;
+package Scenes;
 
-public class LevelScene extends Scene{
+import Motor.Window;
+
+public class LevelScene extends Scene {
     public LevelScene(){
         System.out.println("Inside level scene");
         Window.get().r = 1;
