@@ -2,8 +2,10 @@ package Renderer;
 
 import Motor.Window;
 import Util.AssetPool;
+import Util.JMath;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
+import org.joml.Vector4f;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,6 +30,7 @@ public class DebugDraw {
     private static boolean started = false;
 
     public static void start(){
+
         //Gen vao
         vaoID = glGenVertexArrays();
         glBindVertexArray(vaoID);
@@ -35,7 +38,7 @@ public class DebugDraw {
         //
         vboID = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER,vboID);
-        glBufferData(GL_ARRAY_BUFFER, (long) vertexArray.length *Float.BYTES, GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, vertexArray.length *Float.BYTES, GL_DYNAMIC_DRAW);
 
         glVertexAttribPointer(0,3,GL_FLOAT, false, 6 * Float.BYTES, 0);
         glEnableVertexAttribArray(0);
@@ -60,7 +63,7 @@ public class DebugDraw {
         }
     }
     public static void draw(){
-        if(lines.size() <= 0) return;
+        if(lines.isEmpty()) return;
         int index =0;
         for(Line2D line : lines){
             for (int i = 0; i < 2; i++) {
@@ -70,7 +73,7 @@ public class DebugDraw {
                 //load position
                 vertexArray[index + 0] = position.x;
                 vertexArray[index + 1] = position.y;
-                vertexArray[index + 2] = -10.0f;
+                vertexArray[index + 2] = -0.0f;
                 // load color
                 vertexArray[index + 3] = color.x;
                 vertexArray[index + 4] = color.y;
@@ -86,7 +89,7 @@ public class DebugDraw {
         //glBufferData(GL_ARRAY_BUFFER,vertexArray,GL_DYNAMIC_DRAW);
 
         //Use shader
-        shader.use();;
+        shader.use();
         shader.uploadMat4f("uProjection", Window.getScene().camera().getProjectionMatrix());
         shader.uploadMat4f("uView", Window.getScene().camera().getViewMatrix());
 
@@ -96,7 +99,7 @@ public class DebugDraw {
         glEnableVertexAttribArray(1);
 
         //draw lines
-        glDrawArrays(GL_LINES, 0, lines.size() * 6 * 3);
+        glDrawArrays(GL_LINES, 0, lines.size() * 6 * 2);
         //Bresenham's line algorthm
 
         //disable location
@@ -120,5 +123,47 @@ public class DebugDraw {
        DebugDraw.lines.add(new Line2D(from, to, color, lifetime));
     }
 
+    //   Add Box2D methods
+    public static void addBox2D(Vector2f center, Vector2f dimentions, float rotation,
+                                Vector3f color, int lifetime){
+        Vector2f min = new Vector2f(center).sub(new Vector2f(dimentions).mul(0.5f));
+        Vector2f max = new Vector2f(center).add(new Vector2f(dimentions).mul(0.5f));
+
+        Vector2f[] vertices={
+            new Vector2f(min.x,min.y), new Vector2f(min.x,max.y),
+            new Vector2f(max.x,max.y), new Vector2f(max.x,min.y)
+        };
+
+        if (rotation != 0.0f){
+            for(Vector2f vert : vertices){
+                JMath.rotate(vert,center,rotation);
+            }
+        }
+
+        addLine2D(vertices[0],vertices[1],color,lifetime);
+        addLine2D(vertices[0],vertices[3],color,lifetime);
+        addLine2D(vertices[1],vertices[2],color,lifetime);
+        addLine2D(vertices[2],vertices[3],color,lifetime);
+    }
+
+    // Add Circle methods
+    public static void addCircle(Vector2f center, float radius, Vector3f color, int lifetime){
+        Vector2f[] points = new Vector2f[20];
+        int increment = 360 / points.length;
+        int currentAngle = 0;
+
+        for (int i = 0; i < points.length; i++) {
+            Vector2f tmp = new Vector2f(radius ,0);
+//            System.out.println(currentAngle);
+            JMath.rotate(tmp, new Vector2f(),currentAngle);
+            points[i] = new Vector2f(tmp).add(center);
+
+            if(i > 0){
+                addLine2D(points[i-1],points[i],color,lifetime);
+            }
+            currentAngle += increment;
+        }
+        addLine2D(points[points.length -1],points[0],color,lifetime);
+    }
 
 }

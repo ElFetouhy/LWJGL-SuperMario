@@ -21,14 +21,15 @@ public class RenderBatch implements Comparable<RenderBatch> {
     private final int COLOR_SIZE = 4;
     private final int TEX_COORDS_SIZE = 2;
     private final int TEX_ID_SIZE = 1;
+    private final int ENTITY_ID_SIZE = 1;
+    private final int VERTEX_SIZE = 10;
 
     private final int POSITION_OFFSET = 0;
     private final int COLOR_OFFSET = POSITION_OFFSET + POSITION_SIZE * Float.BYTES;
     private final int TEX_COORDS_OFFSET = COLOR_OFFSET + COLOR_SIZE * Float.BYTES;
     private final int TEX_ID_OFFSET = TEX_COORDS_OFFSET + TEX_COORDS_SIZE * Float.BYTES;
-    private final int VERTEX_SIZE = 9;
+    private final int ENTITY_ID_OFFSET = TEX_ID_OFFSET + TEX_ID_SIZE * Float.BYTES;
     private final int VERTEX_SIZE_BYTES = VERTEX_SIZE * Float.BYTES;
-
 
     private SpriteRenderer[] sprites;
     private int numSprites;
@@ -39,12 +40,10 @@ public class RenderBatch implements Comparable<RenderBatch> {
     private List<Texture> textureList;
     private int vaoID, vboID;
     private int maxBatchSize;
-    private Shader shader;
     private int zIndex;
 
     public RenderBatch(int maxBatchSize,int zIndex) {
         this.zIndex = zIndex;
-        shader = AssetPool.getShader("assets/shaders/default.glsl");
         this.sprites = new SpriteRenderer[maxBatchSize];
         this.maxBatchSize = maxBatchSize;
 
@@ -64,7 +63,7 @@ public class RenderBatch implements Comparable<RenderBatch> {
         // Allocate space for vertices
         vboID =glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER,vboID);
-        glBufferData(GL_ARRAY_BUFFER, vertices.length * Float.BYTES,GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, (long) vertices.length * Float.BYTES,GL_DYNAMIC_DRAW);
 
         // Create and upload index Buffer eboID == ibID
         int ibID = glGenBuffers();
@@ -85,6 +84,9 @@ public class RenderBatch implements Comparable<RenderBatch> {
         // for texture id
         glVertexAttribPointer(3,TEX_ID_SIZE,GL_FLOAT,false, VERTEX_SIZE_BYTES,TEX_ID_OFFSET);
         glEnableVertexAttribArray(3);
+
+        glVertexAttribPointer(4,ENTITY_ID_SIZE,GL_FLOAT,false,VERTEX_SIZE_BYTES,ENTITY_ID_OFFSET);
+        glEnableVertexAttribArray(4);
     }
     public void addSprite(SpriteRenderer spr){
         int index = this.numSprites;
@@ -120,7 +122,7 @@ public class RenderBatch implements Comparable<RenderBatch> {
             glBufferSubData(GL_ARRAY_BUFFER, 0, vertices);
         }
         // Use shader
-        shader.use();
+        Shader shader = Renderer.getBoundShader();
         shader.uploadMat4f("uProjection", Window.getScene().camera().getProjectionMatrix());
         shader.uploadMat4f("uView", Window.getScene().camera().getViewMatrix());
         for (int i = 0; i < textureList.size(); i++) {
@@ -159,7 +161,7 @@ public class RenderBatch implements Comparable<RenderBatch> {
         int textureID = 0;
         if(sprite.getTexture() != null){
             for (int i = 0; i < textureList.size(); i++) {
-                if(textureList.get(i) == sprite.getTexture()){
+                if(textureList.get(i).equals(sprite.getTexture())){
                     textureID = i + 1;
                     break;
                 }
@@ -192,6 +194,8 @@ public class RenderBatch implements Comparable<RenderBatch> {
             vertices[offset + 7] = texCoords[i].y;
             //load texture id
             vertices[offset + 8] = textureID;
+            //load entity id
+            vertices[offset + 9] = sprite.gameObject.getUid() + 1;
 
             offset += VERTEX_SIZE;
         }
@@ -221,7 +225,6 @@ public class RenderBatch implements Comparable<RenderBatch> {
 
 
     }
-
     public boolean hasRoom(){
         return this.hasRoom;
     }
@@ -231,11 +234,9 @@ public class RenderBatch implements Comparable<RenderBatch> {
     public boolean hasTexture(Texture tex){
         return this.textureList.contains(tex);
     }
-
     public int zIndex() {
         return zIndex;
     }
-
     @Override
     public int compareTo(RenderBatch o) {
         return Integer.compare(this.zIndex, o.zIndex());

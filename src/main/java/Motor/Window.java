@@ -1,10 +1,14 @@
 package Motor;
 
+import Renderer.Shader;
 import Renderer.DebugDraw;
-import Renderer.Line2D;
+import Renderer.Framebuffer;
+import Renderer.PickingTexture;
+import Renderer.Renderer;
 import Scenes.LevelEditorScene;
 import Scenes.LevelScene;
 import Scenes.Scene;
+import Util.AssetPool;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
 
@@ -24,6 +28,8 @@ public class Window {
     private static Scene currentScene;
 
     private ImGuiLayer imGuiLayer;
+    private Framebuffer framebuffer;
+    private PickingTexture pickingTexture;
 
     private Window(){
         this.width = 1920;
@@ -47,16 +53,6 @@ public class Window {
         currentScene.load();
         currentScene.init();
         currentScene.start();
-    }
-
-    public static Window get(){
-        if(Window.window == null)
-            Window.window = new Window();
-
-        return Window.window;
-    }
-    public static Scene getScene(){
-        return get().currentScene;
     }
 
     public void run(){
@@ -117,24 +113,17 @@ public class Window {
         //¡¡Importante!!
         createCapabilities();
 
-
         glEnable(GL_BLEND);
         glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
+        this.framebuffer = new Framebuffer(1920,1080);
+        this.pickingTexture = new PickingTexture(1920,1080);
+        glViewport(0,0,1920,1080);
 
-        this.imGuiLayer = new ImGuiLayer(glfwWindow);
+        this.imGuiLayer = new ImGuiLayer(glfwWindow,pickingTexture);
         this.imGuiLayer.initImGui();
 
         Window.changeScene(0);
-
-    }
-
-    private static void setHeight(int newHeight) {
-        get().height =  newHeight;
-    }
-
-    private static void setWidth(Object newWidth) {
-        get().width =(int)  newWidth;
     }
 
     private void loop() {
@@ -142,23 +131,48 @@ public class Window {
         float endTime;
         float dt = -1.0f;
 
+        Shader defaultShader = AssetPool.getShader("assets/shaders/default.glsl");
+        Shader pickingShader = AssetPool.getShader("assets/shaders/pickingShader.glsl");
 
         while(!glfwWindowShouldClose(glfwWindow)){
             //Poll events
             glfwPollEvents();
 
+            // REnder pass 1. Render to picking texture
+            glDisable(GL_BLEND);
+            pickingTexture.enableWriting();
+
+            glViewport(0,0,1920,1080);
+            glClearColor(0.0f,0.0f,0.0f,0.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            Renderer.bindShader(pickingShader);
+            currentScene.render();
+            if(MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_LEFT)){
+                int x = (int)MouseListener.getScreenX();
+                int y = (int)MouseListener.getScreenY();
+
+                System.out.println(pickingTexture.readPixel(x,y));
+            }
+            pickingTexture.disableWriting();
+            glEnable(GL_BLEND);
+
+            // Render pass 2. Render actual game
             DebugDraw.beginFrame();
 
+            this.framebuffer.bind();
             glClearColor(r, g, b, a);
             glClear(GL_COLOR_BUFFER_BIT);
 
             if(dt >= 0) {
+                Renderer.bindShader(defaultShader);
                 DebugDraw.draw();
                 currentScene.update(dt);
+                currentScene.render();
             }
+            this.framebuffer.unbind();
 
             imGuiLayer.update(dt, currentScene);
-
             glfwSwapBuffers(glfwWindow);
 
 
@@ -172,9 +186,29 @@ public class Window {
     public static int getWidth() {
         return get().width;
     }
-
     public static int getHeight() {
         return get().height;
+    }
+    public static Window get(){
+        if(Window.window == null)
+            Window.window = new Window();
+
+        return Window.window;
+    }
+    public static Scene getScene(){
+        return get().currentScene;
+    }
+    public static Framebuffer getFramebuffer() {
+        return get().framebuffer;
+    }
+    public static float getTargetAspectRatio(){
+        return (float) 16/9;
+    }
+    private static void setHeight(int newHeight) {
+        get().height =  newHeight;
+    }
+    private static void setWidth(Object newWidth) {
+        get().width =(int)  newWidth;
     }
 
 
