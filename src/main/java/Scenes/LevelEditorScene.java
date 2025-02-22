@@ -25,11 +25,11 @@ public class  LevelEditorScene extends Scene {
 
     @Override
     public void init(){
+        this.camera = new Camera(new Vector2f(0,0));
         levelEditorComponents.addComponent(new MouseControls());
         levelEditorComponents.addComponent(new GridLines());
-
+        levelEditorComponents.addComponent(new EditorCamera(this.camera));
         loadResources();
-        this.camera = new Camera(new Vector2f(0,0));
         spritesheet = AssetPool.getSpritesheet("assets/images/spritesheets/decorationsAndBlocks.png");
     }
 
@@ -50,19 +50,19 @@ public class  LevelEditorScene extends Scene {
             }
         }
     }
-    float x,y;
-    float angle = 0;
+//    float x,y;
+//    float angle = 0;
     @Override
     public void update(float dt) {
 
-        angle += 1.5f * dt;
+//        angle += 1.5f * dt;
         levelEditorComponents.update(dt);
-
-        x += 50f *dt;
-        y += 50f *dt;
-        DebugDraw.addCircle(new Vector2f(300,200),50,new Vector3f(1,1,1),1);
-        DebugDraw.addBox2D(new Vector2f(200,200),
-                new Vector2f(64,32),angle ,new Vector3f(0,1,1),1);
+        this.camera.adjustProjection();
+//        x += 50f *dt;
+//        y += 50f *dt;
+//        DebugDraw.addCircle(new Vector2f(300,200),50,new Vector3f(1,1,1),1);
+//        DebugDraw.addBox2D(new Vector2f(200,200),
+//                new Vector2f(64,32),angle ,new Vector3f(0,1,1),1);
 
         for (GameObject go : gameObjects){
             go.update(dt);
